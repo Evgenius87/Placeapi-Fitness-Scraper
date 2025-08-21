@@ -1,6 +1,4 @@
-import uvicorn
-import os
-import asyncio
+# import uvicorn
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request, status, Header
@@ -45,11 +43,11 @@ async def webhook_handler(obj: BotUpdateModel):
 
 
 
-if __name__ == "__main__":
+# if __name__ == "__main__":
     
-    PORT = 8000
-    http_tunnel = ngrok.connect(PORT, bind_tls=True)
-    HOST_URL = http_tunnel.public_url
-    print("Ngrok public url:", HOST_URL)
+#     PORT = 8000
+#     http_tunnel = ngrok.connect(PORT, bind_tls=True)
+#     HOST_URL = http_tunnel.public_url
+#     print("Ngrok public url:", HOST_URL)
 
-    uvicorn.run("main:app", host="127.0.0.1", port=PORT, log_level="info", reload=True)
+#     uvicorn.run("main:app", host="127.0.0.1", port=PORT, log_level="info", reload=True)
