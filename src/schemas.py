@@ -1,8 +1,5 @@
-from datetime import datetime
 from pydantic import BaseModel, Field
-from typing import ClassVar, Annotated
-from fastapi import UploadFile, File
-from typing import Optional, Any, Union
+from typing import Optional
 
 class FromTG(BaseModel):
     chat_id: int = Field(alias='id') 

@@ -16,7 +16,6 @@ from src.bot_request_handler import bot_request_handler_chain
 
 
 app = FastAPI()
-
 origins = [
             "http://localhost:8000",  
            ] 
@@ -33,13 +32,12 @@ app.add_middleware(
 
 @app.get('/', status_code=status.HTTP_200_OK)
 async def hello():
-    get_gym_info("Sidney", "Australia")
     message = {'message': 'hello!'}
     return message
 
+
 @app.post('/webhook', status_code=status.HTTP_200_OK)
 async def webhook_handler(obj: BotUpdateModel):
-    print("bot is working")
     bot_handler_chain = await bot_request_handler_chain()
     response = await bot_handler_chain.handle_request(obj)
     return {'message': 'ok'}

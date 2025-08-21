@@ -1,127 +1,119 @@
+import asyncio
 import googlemaps
 import time
-
 from src.conf.config import settings
 
 
-
-
 API_KEY = settings.google_maps_api_key
-
-# def get_gym_info(city="Sidney", country="Australia"):
-#     gmaps = googlemaps.Client(key=API_KEY)
-
-#     location = f"{city}, {country}"
-#     geocode_result = gmaps.geocode(location)
-#     lat = geocode_result[0]['geometry']['location']['lat']
-#     lng = geocode_result[0]['geometry']['location']['lng']
-
-#     all_results = []
+gmaps = googlemaps.Client(key=API_KEY)
 
 
-#     gyms = gmaps.places_nearby(
-#         location=(lat, lng),
-#         radius=7000,
-#         type="gym"
-#     )
+def get_all_results_sync(search_params):
+    all_results = []
+    response = gmaps.places_nearby(**search_params)
+    all_results.extend(response.get("results", []))
 
-#     fitness = gmaps.places_nearby(
-#         location=(lat, lng),
-#         radius=7000,
-#         keyword="fitness"
-#     )
+    while "next_page_token" in response:
+        time.sleep(2)  
+        response = gmaps.places_nearby(
+            location=search_params["location"],
+            radius=search_params["radius"],
+            type=search_params.get("type"),
+            keyword=search_params.get("keyword"),
+            page_token=response["next_page_token"]
+        )
+        all_results.extend(response.get("results", []))
+    return all_results
 
-#     all_results = gyms["results"] + fitness["results"]
 
-#     all_results.extend(places_result["results"])
+async def get_all_results(params):
+    return await asyncio.to_thread(get_all_results_sync, params)
 
-#     while "next_page_token" in places_result:
-#         time.sleep(2)
-#         places_result = gmaps.places_nearby(
-#             location=(lat, lng),
-#             radius=5000,
-#             type="gym",
-#             page_token=places_result["next_page_token"]
-#         )
-#         all_results.extend(places_result["results"])
 
-#     formatted_data = []
-#     for place in all_results:
-#         formatted_data.append({
-#             "Name": place.get("name"),
-#             "Address": place.get("vicinity"),
-#             "Rating": place.get("rating", "Немає рейтингу"),
-#             "Latitude": place["geometry"]["location"]["lat"],
-#             "Longitude": place["geometry"]["location"]["lng"],
-#         })
-#     return formatted_data
-
-def get_gym_info(city="Sidney", country="Australia"):
-    gmaps = googlemaps.Client(key=API_KEY)
-
+def get_city_bounds(city, country):
     location = f"{city}, {country}"
     geocode_result = gmaps.geocode(location)
-    lat = geocode_result[0]['geometry']['location']['lat']
-    lng = geocode_result[0]['geometry']['location']['lng']
+    bounds = geocode_result[0]["geometry"]["bounds"]
+    ne = bounds["northeast"]
+    sw = bounds["southwest"]
+    return (ne, sw)
 
-    def get_all_results(search_params):
-        all_results = []
-        
-        response = gmaps.places_nearby(**search_params)
-        all_results.extend(response.get("results", []))
 
-        
-        while "next_page_token" in response:
-            time.sleep(2)  
-            
-            try:
-                response = gmaps.places_nearby(
-                    location=search_params["location"],
-                    radius=search_params["radius"],
-                    type=search_params.get("type"),
-                    keyword=search_params.get("keyword"),
-                    page_token=response["next_page_token"]
-                )
-                new_results = response.get("results", [])
-                all_results.extend(new_results)
-                
-            except Exception as e:
-                break
-        
-        return all_results
+def generate_grid(ne, sw, step_km=2.0):
+    lat_step = step_km / 111.0
+    lng_step = step_km / 85.0
+    lat = sw["lat"]
+    points = []
+    while lat <= ne["lat"]:
+        lng = sw["lng"]
+        while lng <= ne["lng"]:
+            points.append((lat, lng))
+            lng += lng_step
+        lat += lat_step
+    return points
 
-    gym_params = {
-        "location": (lat, lng),
-        "radius": 7000,
-        "type": "gym"
-    }
-    gym_results = get_all_results(gym_params)
 
-    fitness_params = {
-        "location": (lat, lng),
-        "radius": 7000,
-        "keyword": "fitness"
-    }
-    fitness_results = get_all_results(fitness_params)
+SEARCH_KEYWORDS = ["gym", "fitness", "yoga", "boxing", "martial arts", "sports complex"]
 
-    all_places = gym_results + fitness_results
+
+async def fetch_point_data(point, radius, keywords=None):
+    results = []
+    if keywords is None:
+        keywords = ["gym", "fitness"]
+
+    for keyword in keywords:
+        params = {"location": point, "radius": radius}
+        if keyword == "gym":
+            params["type"] = "gym"
+        else:
+            params["keyword"] = keyword
+
+        res = await get_all_results(params)
+        results.extend(res)
+
+    return results
+
+
+async def get_gym_info(city="New York", country="USA"):
+    ne, sw = get_city_bounds(city, country)
+    lat_span = ne["lat"] - sw["lat"]
+    lng_span = ne["lng"] - sw["lng"]
+
+    if lat_span > 0.2 or lng_span > 0.2:  
+        radius = 3000
+        step_km = 2.0
+        limit_points = 200
+        keywords = SEARCH_KEYWORDS
+
+    else:  
+        radius = 3000
+        step_km = 2.5
+        limit_points = 50
+        keywords = ["gym", "fitness"]
+
+
+    points = generate_grid(ne, sw, step_km=step_km)
+    print(f"🔎 Згенеровано {len(points)} точок (ліміт {limit_points})")
+
+    tasks = []
+    for i, point in enumerate(points[:limit_points]):
+        tasks.append(fetch_point_data(point, radius, keywords))
+
+    results = await asyncio.gather(*tasks)
+
+    all_places = []
     seen_place_ids = set()
-    unique_results = []
-    
-    for place in all_places:
-        place_id = place.get("place_id")
-        if place_id and place_id not in seen_place_ids:
-            seen_place_ids.add(place_id)
-            unique_results.append(place)
 
-    formatted_data = []
-    for place in unique_results:
-        formatted_data.append({
-            "Name": place.get("name"),
-            "Address": place.get("vicinity"),
-            "Rating": place.get("rating", "Немає рейтингу"),
-            "Latitude": place["geometry"]["location"]["lat"],
-            "Longitude": place["geometry"]["location"]["lng"],
-        })
-    
-    return formatted_data
+    for res in results:
+        for place in res:
+            place_id = place.get("place_id")
+            if place_id and place_id not in seen_place_ids:
+                seen_place_ids.add(place_id)
+                all_places.append({
+                    "Name": place.get("name"),
+                    "Address": place.get("vicinity"),
+                    "Rating": place.get("rating", "no rating"),
+                    "Latitude": place["geometry"]["location"]["lat"],
+                    "Longitude": place["geometry"]["location"]["lng"],
+                })
+    return all_places

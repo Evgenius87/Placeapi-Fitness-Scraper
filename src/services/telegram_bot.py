@@ -3,7 +3,7 @@ from aiohttp import ClientSession
 from io import BytesIO
 import aiohttp
 
-from src.conf.bot_messages import START_MESSAGE, FAIL_MESSAGE, GYMS_LEN_MESSAGE
+from src.conf.bot_messages import START_MESSAGE, FAIL_MESSAGE, GYMS_LEN_MESSAGE, WARNING_MESSAGE
 from src.schemas import BotUpdateModel
 from src.services.google_map_service import get_gym_info
 from src.services.split_message import slpit_message
@@ -18,6 +18,7 @@ class TelegramBot:
 
     start_message = START_MESSAGE
     fail_message = FAIL_MESSAGE
+    warning_message = WARNING_MESSAGE
 
     def __init__(self, API_key: str) -> None:
         self.TG_API = API_key
@@ -47,7 +48,12 @@ class TelegramBot:
             chat_id=request.message.from_tg.chat_id,
             message=self.fail_message
         )
-        
+    
+    async def send_warning_message(self, request: BotUpdateModel):
+        return await self.send_message(
+            chat_id=request.message.from_tg.chat_id,
+            message=self.warning_message
+        )
     
     async def send_csv_from_data(self, request: BotUpdateModel, filename: str = "data.csv", caption: str = None):
         chat_id = request.message.from_tg.chat_id
@@ -58,7 +64,7 @@ class TelegramBot:
             return {"error": "Invalid input format"}
 
         try:
-            gyms = get_gym_info(city, country)
+            gyms = await get_gym_info(city, country)
         except Exception as e:
             import traceback
             tb = traceback.format_exc()

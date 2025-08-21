@@ -1,5 +1,3 @@
-import os
-
 from dotenv import load_dotenv
 from abc import ABC, abstractmethod
 from fastapi import Depends
@@ -39,7 +37,6 @@ class AbstractHandler(ABC):
 
         Args:
         - request: The request object to be processed.
-        - db: The database session or connection.
 
         Raises:
         - NotImplementedError: If the method is not implemented in a concrete subclass.
@@ -53,23 +50,28 @@ class StartHandler(AbstractHandler):
             return await telegram_bot.send_start_message(request)
         elif hasattr(self, "_next_handler"):
             await self._next_handler.handle_request(request)
+            
 
 class GetGymInfoHandler(AbstractHandler):
     async def handle_request(self, request: BotUpdateModel):
         if request.message.text:
-            print("Processing gym info request")
+            await telegram_bot.send_warning_message(request)
             return await telegram_bot.send_csv_from_data(request)
         elif hasattr(self, "_next_handler"):
             await self._next_handler.handle_request(request)
 
+
 class NoMessageHandler(AbstractHandler):
     async def handle_request(self, request: BotUpdateModel):
-        if "," not in request.message.text or not request.message.text:
+        if not request.message.text or "," not in request.message.text:
             return await telegram_bot.send_failure_message(request)
         elif hasattr(self, "_next_handler"):
             await self._next_handler.handle_request(request)
 
+
+
 async def bot_request_handler_chain():
+    """Creates a chain of responsibility for handling bot requests."""
 
     start_handler = StartHandler()
     get_gym_info_handler = GetGymInfoHandler()

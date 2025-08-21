@@ -14,5 +14,9 @@ FAIL_MESSAGE = (
     "➡️ Example: `Sydney, Australia`"
 )
 
-GYMS_LEN_MESSAGE = "I found {gyms_len} gyms in your area. \
+GYMS_LEN_MESSAGE = "I found {gyms_len} gyms and fitness centers in your area. \
                     You can download the CSV file with their details."
+
+WARNING_MESSAGE = ("⚠️ request execution time may take several seconds.\n"
+                   "Please be patient while I gather the information for you.\n\n"
+                   )
