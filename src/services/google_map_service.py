@@ -82,18 +82,18 @@ async def get_gym_info(city="New York", country="USA"):
     if lat_span > 0.2 or lng_span > 0.2:  
         radius = 3000
         step_km = 2.0
-        limit_points = 200
+        limit_points = 500
         keywords = SEARCH_KEYWORDS
 
     else:  
         radius = 3000
         step_km = 2.5
-        limit_points = 50
+        limit_points = 200
         keywords = ["gym", "fitness"]
 
 
     points = generate_grid(ne, sw, step_km=step_km)
-    print(f"🔎 Згенеровано {len(points)} точок (ліміт {limit_points})")
+    print(f"🔎 Generated {len(points)} points (limit {limit_points})")
 
     tasks = []
     for i, point in enumerate(points[:limit_points]):

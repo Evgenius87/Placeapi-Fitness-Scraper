@@ -53,8 +53,9 @@ class StartHandler(AbstractHandler):
 class GetGymInfoHandler(AbstractHandler):
     async def handle_request(self, request: BotUpdateModel):
         if request.message.text:
-            await telegram_bot.send_warning_message(request)
-            return await telegram_bot.send_csv_from_data(request)
+            # await telegram_bot.send_warning_message(request)
+            # return await telegram_bot.send_csv_from_data(request)
+            return await telegram_bot.start_csv_processing(request)
         elif hasattr(self, "_next_handler"):
             await self._next_handler.handle_request(request)
 

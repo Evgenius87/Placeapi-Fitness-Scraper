@@ -2,6 +2,7 @@
 from aiohttp import ClientSession
 from io import BytesIO
 import aiohttp
+import asyncio
 
 from src.conf.bot_messages import START_MESSAGE, FAIL_MESSAGE, GYMS_LEN_MESSAGE, WARNING_MESSAGE
 from src.schemas import BotUpdateModel
@@ -51,6 +52,20 @@ class TelegramBot:
             chat_id=request.message.from_tg.chat_id,
             message=self.warning_message
         )
+    
+    async def send_processing_message(self, request: BotUpdateModel):
+        """Відправляє повідомлення про початок обробки"""
+        return await self.send_message(
+            chat_id=request.message.from_tg.chat_id,
+            message=self.processing_message
+        )
+
+    async def start_csv_processing(self, request: BotUpdateModel):
+        await self.send_warning_message(request)
+        asyncio.create_task(self.send_csv_from_data(request)) 
+        return {"message": "processing started"}
+        
+        
     
     async def send_csv_from_data(self, request: BotUpdateModel, filename: str = "data.csv", caption: str = None):
         chat_id = request.message.from_tg.chat_id

@@ -1,10 +1,11 @@
-# import uvicorn
+import uvicorn
 
 from fastapi import FastAPI, status
 from fastapi.middleware.cors import CORSMiddleware
 
 from src.schemas import BotUpdateModel
 from src.bot_request_handler import bot_request_handler_chain
+from pyngrok import ngrok
 
 
 
@@ -38,11 +39,11 @@ async def webhook_handler(obj: BotUpdateModel):
 
 
 
-# if __name__ == "__main__":
+if __name__ == "__main__":
     
-#     PORT = 8000
-#     http_tunnel = ngrok.connect(PORT, bind_tls=True)
-#     HOST_URL = http_tunnel.public_url
-#     print("Ngrok public url:", HOST_URL)
+    PORT = 8000
+    http_tunnel = ngrok.connect(PORT, bind_tls=True)
+    HOST_URL = http_tunnel.public_url
+    print("Ngrok public url:", HOST_URL)
 
-#     uvicorn.run("main:app", host="127.0.0.1", port=PORT, log_level="info", reload=True)
+    uvicorn.run("main:app", host="127.0.0.1", port=PORT, log_level="info", reload=True)

@@ -17,6 +17,6 @@ FAIL_MESSAGE = (
 GYMS_LEN_MESSAGE = "I found {gyms_len} gyms and fitness centers in your area. \
                     You can download the CSV file with their details."
 
-WARNING_MESSAGE = ("⚠️ request execution time may take several seconds.\n"
+WARNING_MESSAGE = ("⏳ The search may take from a few seconds up to several minutes.\n"
                    "Please be patient while I gather the information for you.\n\n"
                    )
