@@ -1,8 +1,6 @@
-from dotenv import load_dotenv
 from abc import ABC, abstractmethod
-from fastapi import Depends
 
-from src.schemas import BotMessage, BotUpdateModel
+from src.schemas import BotUpdateModel
 from src.services.telegram_bot import TelegramBot
 from src.conf.config import settings
 

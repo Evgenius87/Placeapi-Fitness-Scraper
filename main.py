@@ -1,13 +1,8 @@
 # import uvicorn
 
-from dotenv import load_dotenv
-from fastapi import FastAPI, Request, status, Header
-from fastapi.middleware import Middleware
+from fastapi import FastAPI, status
 from fastapi.middleware.cors import CORSMiddleware
-from httpx import AsyncClient
-from pyngrok import ngrok
 
-from src.services.google_map_service import get_gym_info
 from src.schemas import BotUpdateModel
 from src.bot_request_handler import bot_request_handler_chain
 
