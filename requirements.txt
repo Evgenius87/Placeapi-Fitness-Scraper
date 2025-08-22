@@ -5,3 +5,4 @@ pyngrok
 requests
 aiohttp
 googlemaps
+pydantic-settings
