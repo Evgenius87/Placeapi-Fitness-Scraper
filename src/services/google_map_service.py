@@ -113,7 +113,7 @@ async def get_gym_info(city="New York", country="USA"):
                     "Name": place.get("name"),
                     "Address": place.get("vicinity"),
                     "Rating": place.get("rating", "no rating"),
-                    "Latitude": place["geometry"]["location"]["lat"],
                     "Longitude": place["geometry"]["location"]["lng"],
+                    "Latitude": place["geometry"]["location"]["lat"],               
                 })
     return all_places
