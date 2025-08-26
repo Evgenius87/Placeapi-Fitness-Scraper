@@ -1,8 +1,10 @@
 import aiohttp
 import asyncio
 
-OVERPASS_URL = "https://overpass-api.de/api/interpreter"
-NOMINATIM_URL = "https://nominatim.openstreetmap.org/search"
+from src.conf.config import settings
+
+OVERPASS_URL = settings.overpass_url
+NOMINATIM_URL = settings.nominatim_url
 
 
 async def _query_overpass(query: str):
