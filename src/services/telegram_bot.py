@@ -6,7 +6,7 @@ import asyncio
 
 from src.conf.bot_messages import START_MESSAGE, FAIL_MESSAGE, GYMS_LEN_MESSAGE, WARNING_MESSAGE
 from src.schemas import BotUpdateModel
-from src.services.google_map_service import get_gym_info
+from src.services.overpass_service import get_gym_info
 from src.services.split_message import slpit_message
 from src.services.gyms_to_csv import gyms_to_csv
 
