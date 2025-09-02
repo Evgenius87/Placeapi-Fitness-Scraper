@@ -33,16 +33,21 @@ async def _get_city_coordinates(city: str, country: str):
 
 async def _search_by_area(city: str):
     query = f"""
-    [out:json][timeout:60];
+    [out:json][timeout:180];
     area["name"="{city}"]["boundary"="administrative"]->.cityArea;
     (
-      nwr(area.cityArea)["amenity"="gym"];
-      nwr(area.cityArea)["amenity"="dojo"];
-      nwr(area.cityArea)["amenity"="health_club"];
+      // --- 1. Основні теги ---
+      nwr(area.cityArea)["amenity"~"^(gym|dojo|studio|training|health_club|community_centre)$"];
+      nwr(area.cityArea)["leisure"~"^(fitness_centre|fitness_station|sports_centre|dance|climbing|wellness|club|health_club)$"];
+      nwr(area.cityArea)["sport"~"^(fitness|yoga|pilates|boxing|martial_arts|kickboxing|aikido|karate|judo|taekwondo|kung_fu|crossfit|climbing|bouldering|parkour|dance|cheerleading|aerobics|cycling|spinning|running|personal_training|strength_training|stretching)$"];
+      nwr(area.cityArea)["club"~"^(sport|fitness|gym)$"];
+      nwr(area.cityArea)["shop"~"^(sports|fitness_equipment)$"];
 
-      nwr(area.cityArea)["leisure"~"^(fitness_centre|sports_centre)$"];
+      // --- 2. Будівлі ---
+      nwr(area.cityArea)["building"~"^(fitness_centre|gym|sports_hall|dojo)$"];
 
-      nwr(area.cityArea)["sport"~"^(yoga|boxing|martial_arts)$"];
+      // --- 3. Назви (fallback) ---
+      nwr(area.cityArea)["name"~"(gym|fitness|yoga|pilates|boxing|dance|crossfit|dojo)", i];
     );
     out center;
     """
@@ -51,15 +56,20 @@ async def _search_by_area(city: str):
 
 async def _search_by_coordinates(lat: float, lon: float, radius: int = 50000):
     query = f"""
-    [out:json][timeout:60];
+    [out:json][timeout:180];
     (
-      nwr(around:{radius},{lat},{lon})["amenity"="gym"];
-      nwr(around:{radius},{lat},{lon})["amenity"="dojo"];
-      nwr(around:{radius},{lat},{lon})["amenity"="health_club"];
+      // --- 1. Основні теги ---
+      nwr(around:{radius},{lat},{lon})["amenity"~"^(gym|dojo|studio|training|health_club|community_centre)$"];
+      nwr(around:{radius},{lat},{lon})["leisure"~"^(fitness_centre|fitness_station|sports_centre|dance|climbing|wellness|club|health_club)$"];
+      nwr(around:{radius},{lat},{lon})["sport"~"^(fitness|yoga|pilates|boxing|martial_arts|kickboxing|aikido|karate|judo|taekwondo|kung_fu|crossfit|climbing|bouldering|parkour|dance|cheerleading|aerobics|cycling|spinning|running|personal_training|strength_training|stretching)$"];
+      nwr(around:{radius},{lat},{lon})["club"~"^(sport|fitness|gym)$"];
+      nwr(around:{radius},{lat},{lon})["shop"~"^(sports|fitness_equipment)$"];
 
-      nwr(around:{radius},{lat},{lon})["leisure"~"^(fitness_centre|sports_centre)$"];
+      // --- 2. Будівлі ---
+      nwr(around:{radius},{lat},{lon})["building"~"^(fitness_centre|gym|sports_hall|dojo)$"];
 
-      nwr(around:{radius},{lat},{lon})["sport"~"^(yoga|boxing|martial_arts)$"];
+      // --- 3. Назви (fallback) ---
+      nwr(around:{radius},{lat},{lon})["name"~"(gym|fitness|yoga|pilates|boxing|dance|crossfit|dojo)", i];
     );
     out center;
     """
@@ -106,4 +116,3 @@ async def get_gym_info(city: str, country: str):
 
     print(f"✅ Found {len(places)} fitness places in {city}, {country}")
     return places
-
